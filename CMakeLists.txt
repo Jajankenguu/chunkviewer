@@ -25,7 +25,7 @@ target_link_libraries(chunkviewer PUBLIC chunkviewer_warnings)
 
 file(GLOB APP_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_executable(app ${APP_SOURCES})
-target_link_libraries(app PRIVATE raylib chunkviewer_warnings)
+target_link_libraries(app PRIVATE chunkviewer raylib chunkviewer_warnings)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT app)
 
 enable_testing()

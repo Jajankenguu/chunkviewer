@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include <chunkviewer/chunk.h>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <unordered_map>
@@ -19,10 +20,15 @@ public:
   long long total_blocks() const;
   std::vector<ChunkCoord> coords() const;
   std::optional<Block> block(int wx, int wy, int wz) const;
+  void generate(std::uint32_t seed, int radius);
+  std::uint32_t seed() const { return seed_; };
+  int radius() const { return radius_; };
 
 private:
   std::unordered_map<ChunkCoord, std::unique_ptr<Chunk>, ChunkCoordHash>
       chunks_;
+  std::uint32_t seed_ = 0;
+  int radius_ = 0;
 };
 
 } // namespace chunkviewer

@@ -1,6 +1,8 @@
+#include "chunkviewer/world.h"
 #include "chunkviewer/chunk.h"
+#include "chunkviewer/terrain.h"
 #include <algorithm>
-#include <chunkviewer/world.h>
+#include <cstdint>
 #include <optional>
 
 namespace {
@@ -68,6 +70,17 @@ std::optional<Block> World::block(int wx, int wy, int wz) const {
     return std::nullopt;
   }
   return chunk->get(block_x, wy, block_z);
+}
+
+void World::generate(std::uint32_t seed, int radius) {
+  chunks_.clear();
+  seed_ = seed;
+  radius_ = radius;
+  for (int x = -radius; x <= radius; x++) {
+    for (int z = -radius; z <= radius; z++) {
+      generate_chunk(ensure({x, z}), {x, z}, seed);
+    }
+  }
 }
 
 } // namespace chunkviewer
