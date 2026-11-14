@@ -1,8 +1,10 @@
 #include "chunkviewer/mesh.h"
+#include <filesystem>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "chunkviewer/chunk.h"
+#include "chunkviewer/save.h"
 #include "chunkviewer/terrain.h"
 #include "chunkviewer/world.h"
 
@@ -131,4 +133,27 @@ TEST_CASE("a full chunk has 1136 faces") {
     }
   }
   CHECK(chunkviewer::build_faces(*world.get({0, 0})).size() == 1536);
+}
+TEST_CASE("saving and loading a world has the same size, seed, radius, total "
+          "blocks, and an equal chunk") {
+  std::filesystem::path test_path =
+      std::filesystem::temp_directory_path() / "chunkviewer_test.world";
+  World world_saved;
+  world_saved.generate(30, 4);
+  save_world(world_saved, test_path);
+  World world_loaded;
+  load_world(world_loaded, test_path);
+  CHECK(world_saved.size() == world_loaded.size());
+  CHECK(world_saved.seed() == world_loaded.seed());
+  CHECK(world_saved.radius() == world_loaded.radius());
+  CHECK(world_saved.total_blocks() == world_loaded.total_blocks());
+  CHECK(*world_saved.get({0, 1}) == *world_loaded.get({0, 1}));
+  std::filesystem::remove(test_path);
+}
+TEST_CASE("loading a missing file returns false") {
+  World world;
+  std::filesystem::path test_path =
+      std::filesystem::temp_directory_path() / "missing.world";
+  CHECK(!load_world(world, test_path));
+  std::filesystem::remove(test_path);
 }

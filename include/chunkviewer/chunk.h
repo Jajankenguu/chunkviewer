@@ -39,6 +39,9 @@ public:
   static bool inside(int x, int y, int z) {
     return x >= 0 && x < 16 && y >= 0 && y < 16 && z >= 0 && z < 16;
   };
+  const std::array<Block, VOLUME> &raw() const { return blocks_; };
+  std::array<Block, VOLUME> &raw() { return blocks_; };
+
   int count() const;
   bool operator==(const Chunk &) const = default;
 

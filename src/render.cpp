@@ -58,7 +58,7 @@ ChunkModel build_model(const Chunk &chunk, ChunkCoord at) {
       mesh.normals[v * 3 + 0] = shape.normal[0];
       mesh.normals[v * 3 + 1] = shape.normal[1];
       mesh.normals[v * 3 + 2] = shape.normal[2];
-      Colours colour;
+      Colours colour = STONE_C;
       switch (face.block) {
       case (STONE): {
         colour = STONE_C;

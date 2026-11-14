@@ -21,6 +21,10 @@ public:
   std::vector<ChunkCoord> coords() const;
   std::optional<Block> block(int wx, int wy, int wz) const;
   void generate(std::uint32_t seed, int radius);
+  void set_meta(std::uint32_t seed, int radius) {
+    seed_ = seed;
+    radius_ = radius;
+  }
   std::uint32_t seed() const { return seed_; };
   int radius() const { return radius_; };
 
