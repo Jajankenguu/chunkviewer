@@ -5,6 +5,7 @@
 #include "render.h"
 #include "rlImGui.h"
 #include <charconv>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -21,6 +22,10 @@ std::size_t count_faces(const chunkviewer::World &world) {
     n += chunkviewer::build_faces(*world.get(c)).size();
   return n;
 }
+auto ms = [](auto a, auto b) {
+  return std::chrono::duration_cast<std::chrono::microseconds>(b - a).count() /
+         1000.0;
+};
 } // namespace
 
 using namespace chunkviewer;
@@ -28,20 +33,21 @@ using namespace chunkviewer;
 struct Config {
   int frames = -1;
   bool stats = false;
+  bool loading = false;
+  bool saving = false;
+  bool benchmark = false;
   std::uint32_t seed = 7;
   int radius = 2;
   std::filesystem::path path;
-  bool saving = false;
-  bool loading = false;
 };
 
-World generate_world(Config config) {
+World generate_world(Config &config) {
   World world;
   world.generate(config.seed, config.radius);
   return world;
 }
 
-void launch_window(Config config, World &world) {
+void launch_window(Config &config, World &world) {
   const int screen_width = 1280;
   const int screen_height = 720;
   InitWindow(screen_width, screen_height, "Chunkviewer 0.1");
@@ -126,7 +132,7 @@ bool parse_args(int argc, char *argv[], Config &config) {
       }
       if (config.frames < 1 || config.frames > 9999) {
         std::cout << std::format("frames input out of range (1-9999): {}\n",
-                                 ptr);
+                                 frames);
         return false;
       }
     }
@@ -142,7 +148,7 @@ bool parse_args(int argc, char *argv[], Config &config) {
       auto [ptr, ec] =
           std::from_chars(seed.data(), seed.data() + seed.size(), config.seed);
       if (ec != std::errc{}) {
-        std::cout << std::format("invalid seed input: {}\n", ptr);
+        std::cout << std::format("invalid seed input: {}\n", seed);
         return false;
       }
     }
@@ -155,11 +161,12 @@ bool parse_args(int argc, char *argv[], Config &config) {
       auto [ptr, ec] = std::from_chars(
           radius.data(), radius.data() + radius.size(), config.radius);
       if (ec != std::errc{}) {
-        std::cout << std::format("invalid radius input: {}\n", ptr);
+        std::cout << std::format("invalid radius input: {}\n", radius);
         return false;
       }
       if (config.radius < 0 || config.radius > 6) {
-        std::cout << std::format("radius input out of range (0-6): {}\n", ptr);
+        std::cout << std::format("radius input out of range (0-6): {}\n",
+                                 radius);
         return false;
       }
     }
@@ -189,6 +196,9 @@ bool parse_args(int argc, char *argv[], Config &config) {
       }
       config.loading = true;
     }
+    if (arg == "--bench") {
+      config.benchmark = true;
+    }
   }
   return true;
 }
@@ -197,6 +207,19 @@ int main(int argc, char *argv[]) {
   Config config;
   if (!parse_args(argc, argv, config)) {
     return 1;
+  }
+
+  if (config.benchmark) {
+    auto begin_generate = std::chrono::steady_clock::now();
+    World world = generate_world(config);
+    auto begin_count_faces = std::chrono::steady_clock::now();
+    auto total_faces = count_faces(world);
+    auto end_count_faces = std::chrono::steady_clock::now();
+    std::cout << std::format(
+        "bench radius {}: generate {:.3f} ms, mesh {:.3f} ms, faces {}",
+        config.radius, ms(begin_generate, begin_count_faces),
+        ms(begin_count_faces, end_count_faces), total_faces);
+    return 0;
   }
 
   World world = generate_world(config);
